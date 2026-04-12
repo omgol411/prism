@@ -82,7 +82,7 @@ if __name__ == '__main__':
 		coords, mass, radius, ps_names = parse_all_dcds(args.input, args.resolution, args.subunit, args.selection)
 		run_prism( coords, mass, radius, ps_names, args )
 	
-def run_prism( coords, mass, radius, ps_names, args, output_dir = None ):	
+def run_prism( coords, mass, radius, ps_names, args ):	
 	models = round(args.models*coords.shape[0])
 	if args.models != 1:
 		selected_models = np.random.choice(coords.shape[0], models, replace=False)
@@ -132,12 +132,7 @@ def run_prism( coords, mass, radius, ps_names, args, output_dir = None ):
 	bead_spread = scale(bead_spread)
 	print('Bead Spread calculation done')
 
-	# If not specified create a default output directory.
-	if not os.path.exists(args.output) and output_dir == None:
-		os.makedirs(args.output)
-	else:
-		args.output = output_dir
-		os.makedirs(args.output)
+	os.makedirs(args.output, exist_ok=True)
 
 	# Save the bead_spread values.
 	if args.return_spread == 1:
