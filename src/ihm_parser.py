@@ -229,8 +229,8 @@ def ihm_set_bfactor( precision_file, mmcif, model_group ):
 
 def parse_ihm_models( args ):
 	try:
-	    with open( args.input, encoding='utf8') as fh:
-	        mmcif, = ihm.reader.read(fh, model_class=ihm.model.Model)
+		with open( args.input, encoding='utf8') as fh:
+			mmcif, = ihm.reader.read(fh, model_class=ihm.model.Model)
 	except UnicodeDecodeError:
 		with open( args.input, encoding='ascii', errors='ignore') as fh:
 			mmcif, = ihm.reader.read(fh, model_class=ihm.model.Model)
