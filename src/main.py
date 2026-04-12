@@ -95,16 +95,39 @@ def run_prism( coords, mass, radius, ps_names, args, output_dir = None ):
 	grid.create_grid(coords)
 	# Not padding the grid.
 	grid.pad_grid(0)
-	
-	with Pool(args.cores) as p:
+	cores_ = np.min(os.cpu_count() - 1, args.cores)
+	chunksize, extra = divmod(coords.shape[1], len(cores_) * 4)
+	if extra:
+        chunksize += 1
+	with Pool(cores_) as p:
 		densities = []
-		for density in tqdm.tqdm( p.imap( partial(main_density_calc, coords=coords, mass=mass, radius=radius, grid=grid, voxel_size=args.voxel_size, n_breaks=args.n_breaks), range(0, coords.shape[1] ) ) ):
+		for density in tqdm.tqdm( 
+			p.imap( 
+				partial(
+					main_density_calc,
+					coords=coords,
+					mass=mass,
+					radius=radius,
+					grid=grid,
+					voxel_size=args.voxel_size,
+					n_breaks=args.n_breaks
+				),
+				range(0, coords.shape[1]),
+				chunksize=chunksize,
+			) 
+		):
 			densities.append( density )
 	print('Density calculation done')
 
-	with Pool(args.cores) as p:
+	with Pool(cores_) as p:
 		bead_spread = []
-		for spread in tqdm.tqdm( p.map( partial(calc_bead_spread, grid=grid), densities)  ):
+		for spread in tqdm.tqdm(
+			 p.imap(
+				 partial(calc_bead_spread, grid=grid),
+				 densities,
+				 chunksize=chunksize,
+			 )  
+		):
 			bead_spread.append( spread )
 	bead_spread = scale(bead_spread)
 	print('Bead Spread calculation done')
